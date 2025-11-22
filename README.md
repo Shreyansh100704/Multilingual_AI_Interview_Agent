@@ -20,7 +20,7 @@ An intelligent, voice-enabled interview practice application that generates pers
 ## Tech Stack
 
 *   **Frontend**: HTML5, CSS3, Vanilla JavaScript
-*   **Backend**: Python, Flask
+*   **Backend**: Python, Flask, Flask-Session (Server-side sessions)
 *   **AI/LLM**: Google Gemini (via LangChain) or OpenRouter models
 *   **Speech Services**: Web Speech API (Browser) / Google Cloud Speech-to-Text
 *   **PDF Processing**: PyPDF2 (Extraction), fpdf2 (Report Generation)
@@ -161,6 +161,14 @@ The system automatically adjusts question difficulty based on your performance:
 
 **Issue**: PDF generation fails
 - **Solution**: Check backend logs. Ensure all dependencies installed correctly.
+
+## Known Issues & Solutions
+
+For detailed technical analysis of resolved issues, please refer to [problems.md](problems.md).
+
+**Resolved Issues:**
+1.  **Speech-to-Text Race Condition**: Fixed "stale read" bugs where new transcriptions overwrote previous text.
+2.  **Missing Last Question in Report**: Fixed by switching from client-side cookies to server-side filesystem sessions (`Flask-Session`) to handle large interview data.
 
 ## License
 
