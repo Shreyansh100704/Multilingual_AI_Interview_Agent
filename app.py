@@ -10,6 +10,7 @@ from io import BytesIO
 
 from flask import Flask, request, session, jsonify, send_file
 from flask_cors import CORS
+from flask_session import Session
 from dotenv import load_dotenv
 from PyPDF2 import PdfReader
 from werkzeug.utils import secure_filename
@@ -27,6 +28,11 @@ app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(
     minutes=int(os.getenv('SESSION_TIMEOUT_MINUTES', 10))
 )
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
+
+# Configure Server-side Sessions
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_FILE_DIR'] = './flask_session'
+Session(app)
 
 # Enable CORS for decoupled frontend
 CORS(app, supports_credentials=True)

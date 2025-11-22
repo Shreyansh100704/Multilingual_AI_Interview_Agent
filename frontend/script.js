@@ -162,6 +162,11 @@ async function startInterview() {
             document.getElementById('configSection').classList.remove('active');
             document.getElementById('interviewSection').classList.add('active');
 
+            // Update difficulty badge immediately
+            if (data.config && data.config.difficulty) {
+                updateDifficultyBadge(data.config.difficulty);
+            }
+
             // Load first question
             await getNextQuestion();
         } else {
