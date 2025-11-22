@@ -1,5 +1,7 @@
 # Python
 __pycache__/
+.agent/
+
 *.py[cod]
 *$py.class
 *.so
@@ -49,3 +51,4 @@ Thumbs.db
 .pytest_cache/
 .coverage
 htmlcov/
+flask_session/
