@@ -162,11 +162,6 @@ The system automatically adjusts question difficulty based on your performance:
 **Issue**: PDF generation fails
 - **Solution**: Check backend logs. Ensure all dependencies installed correctly.
 
-
-**Resolved Issues:**
-1.  **Speech-to-Text Race Condition**: Fixed "stale read" bugs where new transcriptions overwrote previous text.
-2.  **Missing Last Question in Report**: Fixed by switching from client-side cookies to server-side filesystem sessions (`Flask-Session`) to handle large interview data.
-
 ## License
 
 [MIT License](LICENSE)
