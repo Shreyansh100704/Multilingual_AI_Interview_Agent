@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Interview Agent</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1> AI Interview Practice Agent</h1>
+            <p class="subtitle">Personalized Interview Preparation Powered by AI</p>
+        </header>
+
+        <!-- Configuration Notice -->
+        <div id="configNotice" class="info-box">
+            <strong>Privacy Notice:</strong> No authentication required. Your interview history will NOT be saved.
+        </div>
+
+        <!-- Phase 1: Resume Upload -->
+        <section id="uploadSection" class="section active">
+            <h2>Step 1: Upload Your Resume</h2>
+            <div class="upload-container">
+                <label for="resumeUpload" class="upload-label">
+                    <span class="upload-icon"></span>
+                    <span>Click to upload PDF resume</span>
+                    <span class="file-requirement">Only text-based PDFs accepted. Scanned/OCR PDFs are not
+                        supported.</span>
+                </label>
+                <input type="file" id="resumeUpload" accept=".pdf" style="display: none;">
+
+                <!-- API Keys Section (conditionally displayed) -->
+                <div id="apiKeySection" class="api-keys" style="display: none;">
+                    <h3>API Configuration</h3>
+                    <div class="input-group">
+                        <label for="openrouterKey">OpenRouter API Key:</label>
+                        <input type="password" id="openrouterKey" placeholder="sk-or-...">
+                    </div>
+                    <div class="input-group">
+                        <label for="geminiKey">Gemini API Key:</label>
+                        <input type="password" id="geminiKey" placeholder="AIza...">
+                    </div>
+                </div>
+
+                <button id="uploadBtn" class="btn btn-primary" disabled>Process Resume</button>
+                <div id="uploadStatus" class="status-message"></div>
+            </div>
+        </section>
+
+        <!-- Phase 2: Interview Configuration -->
+        <section id="configSection" class="section">
+            <h2>Step 2: Configure Your Interview</h2>
+
+            <div class="config-grid">
+                <div class="input-group">
+                    <label for="roleInput">Target Job Role:</label>
+                    <input type="text" id="roleInput" placeholder="e.g., Full Stack Developer, Data Scientist">
+                </div>
+
+                <div class="input-group">
+                    <label for="difficultySelect">Difficulty Level:</label>
+                    <select id="difficultySelect">
+                        <option value="Easy">Easy - Fundamentals & Definitions</option>
+                        <option value="Medium">Medium - Practical Applications</option>
+                        <option value="Hard">Hard - Advanced Concepts</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="modelSelect">AI Model:</label>
+                    <select id="modelSelect">
+                        <optgroup label="Google Gemini (Recommended)">
+                            <option value="gemini-2.5-flash" selected>Gemini 2.5 Flash (Fast & Reliable)</option>
+                            <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite (Faster)</option>
+                            <option value="gemini-2.5-pro">Gemini 2.5 Pro (Best Quality)</option>
+                            <option value="gemini-flash-latest">Gemini Flash Latest (Auto-update)</option>
+                        </optgroup>
+                        <optgroup label="OpenRouter (Free)">
+                            <option value="google/gemma-2-9b-it:free">Gemma 2 9B (Free)</option>
+                            <option value="meta-llama/llama-3.2-3b-instruct:free">Llama 3.2 3B (Free)</option>
+                            <option value="qwen/qwen-2-7b-instruct:free">Qwen 2 7B (Free)</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label for="languageSelect">Interview Language:</label>
+                    <select id="languageSelect">
+                        <option value="en" selected>English</option>
+                        <option value="hi">Hindi/Hinglish</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- STT Configuration -->
+            <div class="stt-config">
+                <h3>Speech-to-Text Settings</h3>
+                <div class="toggle-group">
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="sttToggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    <span class="toggle-label">Use Google STT (High Accuracy) - Default: Browser STT (Free,
+                        Unlimited)</span>
+                </div>
+            </div>
+
+            <button id="startBtn" class="btn btn-primary">Start Interview</button>
+            <div id="configStatus" class="status-message"></div>
+        </section>
+
+        <!-- Phase 3: Interview Interface -->
+        <section id="interviewSection" class="section">
+            <h2>Interview in Progress</h2>
+
+            <div class="interview-controls">
+                <div class="question-counter">
+                    <span>Question <span id="questionNumber">1</span></span>
+                    <span id="currentDifficulty" class="difficulty-badge">Easy</span>
+                </div>
+
+                <button id="endSessionBtn" class="btn btn-secondary">End Interview</button>
+            </div>
+
+            <div class="question-box">
+                <div class="question-header">
+                    <span class="icon"></span>
+                    <h3>Interview Question:</h3>
+                </div>
+                <p id="questionText" class="question-text">Loading question...</p>
+                <button id="speakQuestionBtn" class="btn btn-icon">Speak Question</button>
+            </div>
+
+            <div class="answer-box">
+                <div class="answer-header">
+                    <span class="icon"></span>
+                    <h3>Your Answer:</h3>
+                </div>
+                <textarea id="answerText" rows="6" placeholder="Type your answer here or use voice input..."></textarea>
+
+                <div class="answer-controls">
+                    <button id="recordBtn" class="btn btn-voice">
+                        <span class="record-icon"></span>
+                        <span class="record-text">Start Recording</span>
+                    </button>
+                    <button id="submitAnswerBtn" class="btn btn-primary">Submit Answer</button>
+                </div>
+
+                <div id="recordingStatus" class="status-message"></div>
+            </div>
+
+            <!-- Evaluation Feedback -->
+            <div id="evaluationBox" class="evaluation-box" style="display: none;">
+                <h3>Evaluation Feedback</h3>
+                <div class="rating">
+                    <span>Rating: </span>
+                    <span id="ratingScore" class="rating-score">0.00</span>
+                    <span>/10.00</span>
+                </div>
+
+                <div class="feedback-section">
+                    <h4>Strengths:</h4>
+                    <p id="strengthsText"></p>
+                </div>
+
+                <div class="feedback-section">
+                    <h4>Improvements:</h4>
+                    <p id="improvementsText"></p>
+                </div>
+
+                <div class="feedback-section" id="missingPointsSection" style="display: none;">
+                    <h4>Missing Key Points:</h4>
+                    <p id="missingPointsText"></p>
+                </div>
+
+                <button id="nextQuestionBtn" class="btn btn-primary">Next Question</button>
+                <button id="finishBtn" class="btn btn-success">Finish & Generate Report</button>
+            </div>
+        </section>
+
+        <!-- Phase 4: Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+            <div class="spinner"></div>
+            <p id="loadingText">Processing...</p>
+        </div>
+    </div>
+
+    <script src="script.js?v=3"></script>
+</body>
+
+</html>

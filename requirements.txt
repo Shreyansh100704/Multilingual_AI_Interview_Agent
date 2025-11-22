@@ -1,0 +1,16 @@
+Flask==3.0.0
+Flask-CORS==4.0.0
+
+langchain==0.1.0
+langchain-google-genai==0.0.5
+langchain-openai==0.0.5
+
+PyPDF2==3.0.1
+fpdf2==2.7.6
+
+google-cloud-speech==2.21.0
+
+python-dotenv==1.0.0
+
+Werkzeug==3.0.1
+transliterate==1.10.2
