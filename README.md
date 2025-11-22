@@ -162,9 +162,6 @@ The system automatically adjusts question difficulty based on your performance:
 **Issue**: PDF generation fails
 - **Solution**: Check backend logs. Ensure all dependencies installed correctly.
 
-## Known Issues & Solutions
-
-For detailed technical analysis of resolved issues, please refer to [problems.md](problems.md).
 
 **Resolved Issues:**
 1.  **Speech-to-Text Race Condition**: Fixed "stale read" bugs where new transcriptions overwrote previous text.
