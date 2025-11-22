@@ -124,11 +124,12 @@ The system automatically adjusts question difficulty based on your performance:
 *   `app.py`: Main Flask application server with API endpoints
 *   `langchain_agent.py`: LLM orchestration and interview logic
 *   `prompts.py`: Centralized system prompts (English and Hinglish)
-*   `report_generator.py`: PDF report generation with transliteration support
+*   `report_generator.py`: PDF report generation
 *   `frontend/`: Static assets
     - `index.html`: Main UI
     - `script.js`: Frontend logic and STT handling
     - `styles.css`: Styling
+
 
 ## API Endpoints
 
