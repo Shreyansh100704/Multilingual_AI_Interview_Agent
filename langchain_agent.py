@@ -18,7 +18,8 @@ from prompts import (
     EVALUATION_PROMPT_EN_OPENROUTER,
     EVALUATION_PROMPT_HI_GEMINI,
     EVALUATION_PROMPT_HI_OPENROUTER,
-    OVERALL_SUMMARY_PROMPT
+    OVERALL_SUMMARY_PROMPT,
+    MEMORY_SUMMARIZATION_PROMPT
 )
 
 
@@ -92,15 +93,52 @@ class InterviewAgent:
     
     def _manage_memory_threshold(self):
         """
-        FIFO memory management: Delete oldest 5 Q&A pairs when threshold reached.
-        Threshold: 20 messages (10 Q&A pairs).
+        FIFO memory management: Summarize oldest messages when threshold reached.
+        Threshold: 10 messages (5 Q&A pairs).
         """
         messages = self.memory.chat_memory.messages
         
-        if len(messages) > 20:
-            # Remove oldest 10 messages (5 Q&A pairs)
-            self.memory.chat_memory.messages = messages[10:]
-            print(f"[Memory Manager] Pruned oldest 5 exchanges. Current count: {len(self.memory.chat_memory.messages)}")
+        # Check if we exceeded the threshold (e.g., 10 messages = 5 exchanges)
+        if len(messages) > 10:
+            print(f"[Memory Manager] Threshold reached ({len(messages)} messages). Triggering summarization...")
+            
+            # Extract messages to summarize (keep the last 2 exchanges for immediate context)
+            msgs_to_summarize = messages[:-4]
+            recent_msgs = messages[-4:]
+            
+            # Convert messages to text format for the prompt
+            history_text = ""
+            for msg in msgs_to_summarize:
+                role = "Interviewer" if msg.type == "ai" else "Candidate"
+                history_text += f"{role}: {msg.content}\n"
+            
+            # Generate summary
+            try:
+                summary = self._summarize_history(history_text)
+                print(f"[Memory Manager] Summary generated: {summary[:50]}...")
+                
+                # Create a new system message with the summary
+                from langchain_core.messages import SystemMessage
+                summary_message = SystemMessage(content=f"Previous Conversation Summary: {summary}")
+                
+                # Reconstruct memory: Summary + Recent Messages
+                new_messages = [summary_message] + recent_msgs
+                self.memory.chat_memory.messages = new_messages
+                
+                print(f"[Memory Manager] Memory compressed. New count: {len(self.memory.chat_memory.messages)}")
+                
+            except Exception as e:
+                print(f"[Memory Manager] Summarization failed: {e}. Fallback to pruning.")
+                # Fallback: Just keep recent messages
+                self.memory.chat_memory.messages = messages[-10:]
+
+    def _summarize_history(self, history_text: str) -> str:
+        """
+        Summarize conversation history using LLM.
+        """
+        prompt = MEMORY_SUMMARIZATION_PROMPT.format(history=history_text)
+        response = self.llm.invoke(prompt)
+        return response.content.strip()
     
     def summarize_resume(self, resume_text: str) -> str:
         """

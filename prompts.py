@@ -186,6 +186,21 @@ Provide a comprehensive performance summary covering:
 
 Keep the summary professional, constructive, and actionable (200-250 words)."""
 
+MEMORY_SUMMARIZATION_PROMPT = """
+You are an expert interviewer assistant. Your goal is to summarize the conversation history between an interviewer and a candidate to retain key context while reducing token usage.
+
+Current Conversation History:
+{history}
+
+Instructions:
+1. Summarize the key points discussed so far.
+2. Highlight the candidate's strengths and weaknesses identified in previous answers.
+3. Retain the context of the last question asked to ensure continuity.
+4. Keep the summary concise (under 200 words).
+
+Summary:
+"""
+
 # Difficulty Level Descriptions (for UI/documentation)
 DIFFICULTY_LEVELS = {
     "Easy": "Fundamental concepts, definitions, and basic problem-solving",

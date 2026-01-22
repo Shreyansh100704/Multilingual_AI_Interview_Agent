@@ -10,6 +10,7 @@ let recognition = null;
 // Track current question and recording context to avoid overwrites
 let activeQuestionNumber = 0;
 let recordingForQuestionNumber = 0;
+let isVadSubmitting = false; // Flag to coordinate VAD submission with Google STT
 
 
 // Initialization
@@ -56,6 +57,10 @@ function initializeEventListeners() {
     document.getElementById('nextQuestionBtn').addEventListener('click', getNextQuestion);
     document.getElementById('finishBtn').addEventListener('click', generateReport);
     document.getElementById('endSessionBtn').addEventListener('click', endSession);
+
+    // VAD Controls
+    document.getElementById('vadToggle').addEventListener('change', handleVadToggle);
+    document.getElementById('forceSubmitBtn').addEventListener('click', () => window.vadManager.forceSubmit());
 }
 
 // Resume Upload
@@ -184,6 +189,52 @@ function handleSTTToggle(event) {
     // No special handling needed
 }
 
+async function handleVadToggle(event) {
+    const isEnabled = event.target.checked;
+    const vadControls = document.getElementById('vadControls');
+    const recordBtn = document.getElementById('recordBtn');
+
+    if (isEnabled) {
+        vadControls.style.display = 'block';
+        // Initialize VAD if not already done
+        if (!window.vadManager.vad) {
+            showLoading('Initializing Voice Detection...');
+            const success = await window.vadManager.initialize();
+            hideLoading();
+            if (!success) {
+                event.target.checked = false;
+                showStatus('recordingStatus', 'Failed to initialize VAD. Check console for details.', 'error');
+                return;
+            }
+        }
+
+        // If we are already recording, VAD will take over logic
+        // But usually we want VAD to control the recording state
+        recordBtn.style.display = 'none'; // Hide manual record button in VAD mode? 
+        // Or keep it as a manual override? Let's hide it to avoid confusion for now, 
+        // or disable it. The user asked for "Real Interview Mode".
+        // Let's keep it simple: VAD mode auto-starts listening when question is asked?
+        // Or user still has to click "Start Interview"?
+        // Let's make VAD mode auto-start listening after TTS finishes or immediately.
+
+        window.vadManager.start();
+
+        // Ensure STT is running if using browser STT
+        if (!isRecording) {
+            toggleRecording(); // Start the underlying STT engine
+        }
+
+    } else {
+        vadControls.style.display = 'none';
+        window.vadManager.stop();
+        recordBtn.style.display = 'inline-block';
+
+        if (isRecording) {
+            toggleRecording(); // Stop STT
+        }
+    }
+}
+
 function handleLanguageChange(event) {
     // No special handling needed - language selection is straightforward
 }
@@ -219,6 +270,16 @@ async function getNextQuestion() {
 
             // Auto-speak question
             speakQuestion();
+
+            // If VAD mode is on, ensure we are listening
+            if (document.getElementById('vadToggle').checked) {
+                // Small delay to let TTS start? 
+                // Ideally we wait for TTS to finish, but for now let's just ensure VAD is active
+                window.vadManager.start();
+                if (!isRecording) {
+                    toggleRecording();
+                }
+            }
         } else {
             alert(data.error || 'Failed to generate question');
         }
@@ -443,8 +504,16 @@ async function transcribeWithGoogle(audioBlob) {
             console.log('Appended text (Google). New value:', answerBox.value);
 
             showStatus('recordingStatus', `Transcription complete (Confidence: ${(data.confidence * 100).toFixed(1)}%)`, 'success');
+
+            // If this was triggered by VAD auto-submit, proceed to submit
+            if (isVadSubmitting) {
+                console.log('VAD submission: Transcription complete, submitting answer...');
+                isVadSubmitting = false;
+                submitAnswer();
+            }
         } else {
             showStatus('recordingStatus', data.error || 'Transcription failed', 'error');
+            isVadSubmitting = false; // Reset on error
         }
     } catch (error) {
         hideLoading();
@@ -479,6 +548,14 @@ async function submitAnswer() {
 
         if (response.ok) {
             displayEvaluation(data.evaluation);
+
+            // If VAD mode, maybe stop listening during evaluation?
+            if (document.getElementById('vadToggle').checked) {
+                window.vadManager.stop();
+                if (isRecording) {
+                    toggleRecording(); // Stop STT during evaluation reading
+                }
+            }
 
             // Update difficulty badge and show notification if changed
             if (data.updated_difficulty !== data.previous_difficulty) {
@@ -604,6 +681,23 @@ async function endSession() {
         location.reload();
     }
 }
+
+// VAD Submission Handler
+window.handleVadSubmit = async function () {
+    const sttMode = document.getElementById('sttToggle').checked ? 'google' : 'browser';
+
+    // If using Google STT and currently recording, we must stop and wait for transcription
+    if (sttMode === 'google' && isRecording) {
+        console.log('VAD Submit: Stopping Google STT and waiting for transcription...');
+        isVadSubmitting = true;
+        await stopGoogleSTTRecording();
+        // The actual submission will happen in transcribeWithGoogle after success
+    } else {
+        // Browser STT (already transcribed) or not recording
+        console.log('VAD Submit: Direct submission');
+        submitAnswer();
+    }
+};
 
 // Utility Functions
 function showLoading(message) {

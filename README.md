@@ -8,6 +8,7 @@ An intelligent, voice-enabled interview practice application that generates pers
 *   **Adaptive Difficulty**: Questions automatically adjust based on your performance (Easy → Medium → Hard).
 *   **Voice Interaction**:
     *   **Text-to-Speech (TTS)**: The agent reads questions aloud.
+    *   **Voice Activity Detection (VAD)**: "Real Interview Mode" automatically detects when you start and stop speaking, simulating a natural conversation flow.
     *   **Speech-to-Text (STT)**: Answer using your voice with browser-native speech recognition or Google Cloud Speech-to-Text.
 *   **Multi-Language Support**: Practice in English or Hindi/Hinglish.
 *   **Real-time Evaluation**: Get instant feedback on your answers with:
@@ -19,7 +20,7 @@ An intelligent, voice-enabled interview practice application that generates pers
 
 ## Tech Stack
 
-*   **Frontend**: HTML5, CSS3, Vanilla JavaScript
+*   **Frontend**: HTML5, CSS3, Vanilla JavaScript, `@ricky0123/vad-web`, `onnxruntime-web`
 *   **Backend**: Python, Flask, Flask-Session (Server-side sessions)
 *   **AI/LLM**: Google Gemini (via LangChain) or OpenRouter models
 *   **Speech Services**: Web Speech API (Browser) / Google Cloud Speech-to-Text
@@ -94,8 +95,8 @@ An intelligent, voice-enabled interview practice application that generates pers
         - Select language (English or Hindi/Hinglish)
         - Choose STT mode (Browser or Google)
     *   **Answer Questions**: 
-        - Use microphone button to record voice answers
-        - Or type answers directly
+        - **Real Interview Mode**: Enable auto-submit to have the AI listen and respond automatically when you stop speaking.
+        - **Manual Mode**: Use microphone button to record voice answers or type directly.
         - Submit and get instant feedback
     *   **Generate Report**: Finish interview and download PDF report
 
@@ -166,6 +167,10 @@ The system automatically adjusts question difficulty based on your performance:
 **Resolved Issues:**
 1.  **Speech-to-Text Race Condition**: Fixed "stale read" bugs where new transcriptions overwrote previous text.
 2.  **Missing Last Question in Report**: Fixed by switching from client-side cookies to server-side filesystem sessions (`Flask-Session`) to handle large interview data.
+
+## Acknowledgements
+
+*   **[vad-web](https://github.com/ricky0123/vad)** by @ricky0123 for the Voice Activity Detection library.
 
 ## License
 
