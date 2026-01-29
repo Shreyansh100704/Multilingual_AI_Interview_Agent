@@ -271,15 +271,8 @@ async function getNextQuestion() {
             // Auto-speak question
             speakQuestion();
 
-            // If VAD mode is on, ensure we are listening
-            if (document.getElementById('vadToggle').checked) {
-                // Small delay to let TTS start? 
-                // Ideally we wait for TTS to finish, but for now let's just ensure VAD is active
-                window.vadManager.start();
-                if (!isRecording) {
-                    toggleRecording();
-                }
-            }
+            // Note: VAD will be automatically activated after TTS finishes speaking
+            // This is handled in the speakQuestion() function's utterance.onend callback
         } else {
             alert(data.error || 'Failed to generate question');
         }
@@ -302,6 +295,41 @@ function speakQuestion() {
         utterance.lang = document.getElementById('languageSelect').value === 'hi' ? 'hi-IN' : 'en-US';
         utterance.rate = 0.9;
         utterance.pitch = 1;
+
+        // Pause VAD when TTS starts to prevent detecting browser speech
+        const isVadActive = document.getElementById('vadToggle').checked;
+        if (isVadActive && window.vadManager) {
+            console.log('TTS: Pausing VAD to prevent detecting browser speech');
+            window.vadManager.stop();
+        }
+
+        // Resume VAD when TTS finishes
+        utterance.onend = () => {
+            console.log('TTS: Speech ended');
+            if (isVadActive && window.vadManager) {
+                console.log('TTS: Resuming VAD after speech completion');
+                // Small delay to ensure clean transition
+                setTimeout(() => {
+                    window.vadManager.start();
+                    // Ensure STT is also running
+                    if (!isRecording) {
+                        toggleRecording();
+                    }
+                }, 300);
+            }
+        };
+
+        // Handle errors
+        utterance.onerror = (event) => {
+            console.error('TTS Error:', event);
+            // Resume VAD even on error
+            if (isVadActive && window.vadManager) {
+                window.vadManager.start();
+                if (!isRecording) {
+                    toggleRecording();
+                }
+            }
+        };
 
         window.speechSynthesis.speak(utterance);
     } else {
